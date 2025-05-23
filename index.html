@@ -1,140 +1,253 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestão de Lanchonete - Shalom</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #e2eafc, #ffffff);
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    h1 {
-      margin-top: 30px;
-      color: #2c3e50;
-      font-size: 2em;
-    }
-    .container {
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-      max-width: 600px;
-      width: 90%;
-      margin-top: 20px;
-    }
-    label {
-      margin-top: 15px;
-      font-weight: bold;
-      color: #34495e;
-    }
-    input[type="text"], input[type="number"] {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #bdc3c7;
-      margin-bottom: 15px;
-      font-size: 1em;
-    }
-    button {
-      padding: 12px;
-      background-color: #27ae60;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
-      font-size: 1em;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #1e8449;
-    }
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
-    li {
-      background-color: #f1f2f6;
-      margin: 5px 0;
-      padding: 12px;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .remove-btn {
-      background-color: #e74c3c;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      padding: 6px 12px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .remove-btn:hover {
-      background-color: #c0392b;
-    }
-    h2, h3 {
-      color: #2c3e50;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gestão de Lanchonete - Estoque e Vendas</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+    color: #333;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h2 {
+    margin-bottom: 10px;
+  }
+  .container {
+    background: white;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+    max-width: 450px;
+    width: 100%;
+  }
+  input, select, button {
+    width: 100%;
+    padding: 10px 14px;
+    margin: 8px 0 15px 0;
+    border: 1.8px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+  }
+  input:focus, select:focus {
+    border-color: #4CAF50;
+    outline: none;
+  }
+  button {
+    background-color: #36bb3b;
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 3px 6px rgb(31, 241, 38);
+  }
+  button:hover {
+    background-color: #3bf741;
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1.6px solid #ddd;
+    border-radius: 6px;
+    background: #fafafa;
+  }
+  li {
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+    font-weight: 600;
+    color: #444;
+  }
+  li:last-child {
+    border-bottom: none;
+  }
+  #alerta {
+    color: #c0392b;
+    font-weight: 700;
+    min-height: 22px;
+    margin-bottom: 8px;
+  }
+  .total-vendas {
+    font-weight: 700;
+    font-size: 17px;
+    margin-top: 10px;
+    text-align: right;
+    color: #222;
+  }
+</style>
 </head>
 <body>
-  <h1>Gestão de Vendas - Lanchonete Shalom</h1>
-  <div class="container">
-    <label for="item">Item:</label>
-    <input type="text" id="item" />
-    <label for="valor">Valor (R$):</label>
-    <input type="number" id="valor" step="0.01" />
-    <button onclick="adicionarItem()">Adicionar</button>
 
-    <h2>Vendas:</h2>
-    <ul id="lista"></ul>
-    <h3>Total: R$ <span id="total">0.00</span></h3>
+  <div class="container">
+    <h2>Cadastro de Produto</h2>
+    <input type="text" id="nomeProduto" placeholder="Nome do produto" />
+    <input type="number" id="quantidadeProduto" placeholder="Quantidade" min="1" />
+    <input type="number" id="precoProduto" placeholder="Preço unitário (R$)" step="0.01" min="0.01" />
+    <button id="btnAdicionar">Adicionar Produto</button>
   </div>
 
-  <script>
-    let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+  <div class="container">
+    <h2>Estoque Atual</h2>
+    <ul id="listaEstoque"></ul>
+  </div>
 
-    function atualizarTela() {
-      const lista = document.getElementById('lista');
-      const totalSpan = document.getElementById('total');
-      lista.innerHTML = '';
-      let total = 0;
-      vendas.forEach((venda, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `${venda.item}: R$ ${venda.valor.toFixed(2)} <button class="remove-btn" onclick="removerItem(${index})">Remover</button>`;
-        lista.appendChild(li);
-        total += venda.valor;
-      });
-      totalSpan.textContent = total.toFixed(2);
-      localStorage.setItem('vendas', JSON.stringify(vendas));
+  <div class="container">
+    <h2>Registrar Venda</h2>
+    <select id="selectProduto"></select>
+    <input type="number" id="quantidadeVenda" placeholder="Quantidade" min="1" />
+    <button id="btnRegistrarVenda">Registrar Venda</button>
+    <div id="alerta"></div>
+  </div>
+
+  <div class="container">
+    <h2>Vendas Registradas</h2>
+    <ul id="listaVendas"></ul>
+    <div class="total-vendas" id="totalVendas">Total vendido: R$ 0,00</div>
+  </div>
+
+<script>
+  const listaEstoque = document.getElementById('listaEstoque');
+  const listaVendas = document.getElementById('listaVendas');
+  const selectProduto = document.getElementById('selectProduto');
+  const alerta = document.getElementById('alerta');
+  const totalVendasDiv = document.getElementById('totalVendas');
+
+  let estoque = [];
+  let vendas = [];
+
+  function atualizarEstoque() {
+    listaEstoque.innerHTML = '';
+    selectProduto.innerHTML = '';
+
+    if (estoque.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = 'Nenhum produto cadastrado.';
+      li.style.textAlign = 'center';
+      li.style.color = '#999';
+      li.style.fontWeight = '400';
+      listaEstoque.appendChild(li);
+      selectProduto.disabled = true;
+      return;
+    }
+    selectProduto.disabled = false;
+
+    estoque.forEach((produto, index) => {
+      const li = document.createElement('li');
+      li.textContent = `${produto.nome} — Qtd: ${produto.quantidade} — R$ ${produto.preco.toFixed(2)}`;
+      listaEstoque.appendChild(li);
+
+      const option = document.createElement('option');
+      option.value = index;
+      option.text = produto.nome;
+      selectProduto.appendChild(option);
+    });
+  }
+
+  function atualizarVendas() {
+    listaVendas.innerHTML = '';
+    if (vendas.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = 'Nenhuma venda registrada.';
+      li.style.textAlign = 'center';
+      li.style.color = '#999';
+      li.style.fontWeight = '400';
+      listaVendas.appendChild(li);
+      totalVendasDiv.textContent = 'Total vendido: R$ 0,00';
+      return;
     }
 
-    function adicionarItem() {
-      const item = document.getElementById('item').value.trim();
-      const valor = parseFloat(document.getElementById('valor').value);
-      if (item && !isNaN(valor)) {
-        vendas.push({ item, valor });
-        document.getElementById('item').value = '';
-        document.getElementById('valor').value = '';
-        atualizarTela();
-      } else {
-        alert('Preencha o nome do item e o valor corretamente.');
-      }
+    let total = 0;
+    vendas.forEach(venda => {
+      total += venda.valorTotal;
+      const li = document.createElement('li');
+      li.textContent = `${venda.quantidade}x ${venda.nome} — Total: R$ ${venda.valorTotal.toFixed(2)}`;
+      listaVendas.appendChild(li);
+    });
+
+    totalVendasDiv.textContent = `Total vendido: R$ ${total.toFixed(2)}`;
+  }
+
+  document.getElementById('btnAdicionar').addEventListener('click', () => {
+    const nome = document.getElementById('nomeProduto').value.trim();
+    const quantidade = parseInt(document.getElementById('quantidadeProduto').value);
+    const preco = parseFloat(document.getElementById('precoProduto').value);
+
+    alerta.textContent = '';
+
+    if (!nome) {
+      alerta.textContent = 'Informe o nome do produto.';
+      return;
+    }
+    if (isNaN(quantidade) || quantidade <= 0) {
+      alerta.textContent = 'Informe uma quantidade válida.';
+      return;
+    }
+    if (isNaN(preco) || preco <= 0) {
+      alerta.textContent = 'Informe um preço válido.';
+      return;
     }
 
-    function removerItem(index) {
-      vendas.splice(index, 1);
-      atualizarTela();
+    const produtoExistente = estoque.find(p => p.nome.toLowerCase() === nome.toLowerCase());
+    if (produtoExistente) {
+      produtoExistente.quantidade += quantidade;
+      produtoExistente.preco = preco;
+    } else {
+      estoque.push({ nome, quantidade, preco });
     }
 
-    atualizarTela();
-  </script>
+    document.getElementById('nomeProduto').value = '';
+    document.getElementById('quantidadeProduto').value = '';
+    document.getElementById('precoProduto').value = '';
+
+    atualizarEstoque();
+  });
+
+  document.getElementById('btnRegistrarVenda').addEventListener('click', () => {
+    alerta.textContent = '';
+    const index = parseInt(selectProduto.value);
+    const quantidadeVenda = parseInt(document.getElementById('quantidadeVenda').value);
+
+    if (estoque.length === 0) {
+      alerta.textContent = 'Nenhum produto disponível para venda.';
+      return;
+    }
+    if (isNaN(index) || !estoque[index]) {
+      alerta.textContent = 'Selecione um produto válido.';
+      return;
+    }
+    if (isNaN(quantidadeVenda) || quantidadeVenda <= 0) {
+      alerta.textContent = 'Informe uma quantidade válida.';
+      return;
+    }
+    if (quantidadeVenda > estoque[index].quantidade) {
+      alerta.textContent = 'Quantidade insuficiente em estoque.';
+      return;
+    }
+
+    estoque[index].quantidade -= quantidadeVenda;
+
+    vendas.push({
+      nome: estoque[index].nome,
+      quantidade: quantidadeVenda,
+      valorTotal: quantidadeVenda * estoque[index].preco
+    });
+
+    atualizarEstoque();
+    atualizarVendas();
+
+    document.getElementById('quantidadeVenda').value = '';
+  });
+
+  atualizarEstoque();
+  atualizarVendas();
+</script>
+
 </body>
 </html>
