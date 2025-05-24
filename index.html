@@ -1,95 +1,92 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Gestão de Lanchonete - Estoque e Vendas</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f0f0f0;
-    color: #333;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  h2 {
-    margin-bottom: 10px;
-  }
-  .container {
-    background: white;
-    padding: 15px 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
-    max-width: 450px;
-    width: 100%;
-  }
-  input, select, button {
-    width: 100%;
-    padding: 10px 14px;
-    margin: 8px 0 15px 0;
-    border: 1.8px solid #ccc;
-    border-radius: 6px;
-    font-size: 16px;
-  }
-  input:focus, select:focus {
-    border-color: #4CAF50;
-    outline: none;
-  }
-  button {
-    background-color: #36bb3b;
-    color: white;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    box-shadow: 0 3px 6px rgb(31, 241, 38);
-  }
-  button:hover {
-    background-color: #3bf741;
-  }
-  ul {
-    list-style: none;
-    padding: 0;
-    max-height: 180px;
-    overflow-y: auto;
-    border: 1.6px solid #ddd;
-    border-radius: 6px;
-    background: #fafafa;
-  }
-  li {
-    padding: 10px 15px;
-    border-bottom: 1px solid #ddd;
-    font-weight: 600;
-    color: #444;
-  }
-  li:last-child {
-    border-bottom: none;
-  }
-  #alerta {
-    color: #c0392b;
-    font-weight: 700;
-    min-height: 22px;
-    margin-bottom: 8px;
-  }
-  .total-vendas {
-    font-weight: 700;
-    font-size: 17px;
-    margin-top: 10px;
-    text-align: right;
-    color: #222;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gestão de Lanchonete</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      max-width: 450px;
+      width: 100%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button.edit-btn, button.remove-btn, button.save-btn, button.cancel-btn {
+      width: auto;
+      margin-left: 5px;
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+    button.remove-btn {
+      background: #f44336;
+    }
+    button.edit-btn {
+      background: #2196F3;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    li {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .item-info {
+      flex: 1 1 60%;
+    }
+    #alerta {
+      color: red;
+      font-weight: bold;
+      min-height: 20px;
+    }
+    .total-vendas {
+      text-align: right;
+      font-weight: bold;
+    }
+    .edit-input {
+      width: 100px;
+      margin-left: 5px;
+    }
+  </style>
 </head>
 <body>
 
   <div class="container">
     <h2>Cadastro de Produto</h2>
     <input type="text" id="nomeProduto" placeholder="Nome do produto" />
-    <input type="number" id="quantidadeProduto" placeholder="Quantidade" min="1" />
-    <input type="number" id="precoProduto" placeholder="Preço unitário (R$)" step="0.01" min="0.01" />
+    <input type="number" id="quantidadeProduto" placeholder="Quantidade" />
+    <input type="number" id="precoProduto" placeholder="Preço (R$)" step="0.01" />
     <button id="btnAdicionar">Adicionar Produto</button>
   </div>
 
@@ -101,7 +98,7 @@
   <div class="container">
     <h2>Registrar Venda</h2>
     <select id="selectProduto"></select>
-    <input type="number" id="quantidadeVenda" placeholder="Quantidade" min="1" />
+    <input type="number" id="quantidadeVenda" placeholder="Quantidade" />
     <button id="btnRegistrarVenda">Registrar Venda</button>
     <div id="alerta"></div>
   </div>
@@ -112,142 +109,324 @@
     <div class="total-vendas" id="totalVendas">Total vendido: R$ 0,00</div>
   </div>
 
-<script>
-  const listaEstoque = document.getElementById('listaEstoque');
-  const listaVendas = document.getElementById('listaVendas');
-  const selectProduto = document.getElementById('selectProduto');
-  const alerta = document.getElementById('alerta');
-  const totalVendasDiv = document.getElementById('totalVendas');
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  let estoque = [];
-  let vendas = [];
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdyMUtzmpjNYOUMK6D00ET8r87LZEu9ck",
+      authDomain: "gestao-de-vendas-shalom.firebaseapp.com",
+      projectId: "gestao-de-vendas-shalom",
+      storageBucket: "gestao-de-vendas-shalom.firebasestorage.app",
+      messagingSenderId: "197249286067",
+      appId: "1:197249286067:web:f59c61d8d61f57694ed5c6",
+      measurementId: "G-QZW5B1GZ5L"
+    };
 
-  function atualizarEstoque() {
-    listaEstoque.innerHTML = '';
-    selectProduto.innerHTML = '';
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    if (estoque.length === 0) {
-      const li = document.createElement('li');
-      li.textContent = 'Nenhum produto cadastrado.';
-      li.style.textAlign = 'center';
-      li.style.color = '#999';
-      li.style.fontWeight = '400';
-      listaEstoque.appendChild(li);
-      selectProduto.disabled = true;
-      return;
+    const estoqueRef = db.collection("estoque");
+    const vendasRef = db.collection("vendas");
+
+    const nomeProduto = document.getElementById("nomeProduto");
+    const quantidadeProduto = document.getElementById("quantidadeProduto");
+    const precoProduto = document.getElementById("precoProduto");
+    const btnAdicionar = document.getElementById("btnAdicionar");
+    const listaEstoque = document.getElementById("listaEstoque");
+    const listaVendas = document.getElementById("listaVendas");
+    const selectProduto = document.getElementById("selectProduto");
+    const quantidadeVenda = document.getElementById("quantidadeVenda");
+    const btnRegistrarVenda = document.getElementById("btnRegistrarVenda");
+    const alerta = document.getElementById("alerta");
+    const totalVendasDiv = document.getElementById("totalVendas");
+
+    // --- Funções para atualizar UI ---
+
+    function atualizarEstoqueUI(produtos) {
+      listaEstoque.innerHTML = "";
+      selectProduto.innerHTML = "";
+
+      if (produtos.length === 0) {
+        listaEstoque.innerHTML = "<li>Nenhum produto cadastrado.</li>";
+        selectProduto.disabled = true;
+        return;
+      }
+
+      selectProduto.disabled = false;
+
+      produtos.forEach(doc => {
+        const produto = doc.data();
+        const docId = doc.id;
+
+        // Option para select de venda
+        const option = document.createElement("option");
+        option.value = docId;
+        option.text = produto.nome;
+        selectProduto.appendChild(option);
+
+        // List item estoque com botões
+        const li = document.createElement("li");
+
+        const infoDiv = document.createElement("div");
+        infoDiv.className = "item-info";
+        infoDiv.textContent = `${produto.nome} — Qtd: ${produto.quantidade} — R$ ${produto.preco.toFixed(2)}`;
+        li.appendChild(infoDiv);
+
+        // Botões editar e remover
+        const btnEditar = document.createElement("button");
+        btnEditar.textContent = "Editar";
+        btnEditar.className = "edit-btn";
+        btnEditar.onclick = () => editarProduto(docId, produto, infoDiv, btnEditar, btnRemover);
+
+        const btnRemover = document.createElement("button");
+        btnRemover.textContent = "Remover";
+        btnRemover.className = "remove-btn";
+        btnRemover.onclick = () => removerProduto(docId);
+
+        li.appendChild(btnEditar);
+        li.appendChild(btnRemover);
+
+        listaEstoque.appendChild(li);
+      });
     }
-    selectProduto.disabled = false;
 
-    estoque.forEach((produto, index) => {
-      const li = document.createElement('li');
-      li.textContent = `${produto.nome} — Qtd: ${produto.quantidade} — R$ ${produto.preco.toFixed(2)}`;
-      listaEstoque.appendChild(li);
+    function atualizarVendasUI(vendas) {
+      listaVendas.innerHTML = "";
+      let total = 0;
 
-      const option = document.createElement('option');
-      option.value = index;
-      option.text = produto.nome;
-      selectProduto.appendChild(option);
+      if (vendas.length === 0) {
+        listaVendas.innerHTML = "<li>Nenhuma venda registrada.</li>";
+        totalVendasDiv.textContent = "Total vendido: R$ 0,00";
+        return;
+      }
+
+      vendas.forEach(doc => {
+        const venda = doc.data();
+        const docId = doc.id;
+        total += venda.valorTotal;
+
+        const li = document.createElement("li");
+
+        const infoDiv = document.createElement("div");
+        infoDiv.className = "item-info";
+        infoDiv.textContent = `${venda.quantidade}x ${venda.nome} — Total: R$ ${venda.valorTotal.toFixed(2)}`;
+        li.appendChild(infoDiv);
+
+        // Botões editar e remover
+        const btnEditar = document.createElement("button");
+        btnEditar.textContent = "Editar";
+        btnEditar.className = "edit-btn";
+        btnEditar.onclick = () => editarVenda(docId, venda, infoDiv, btnEditar, btnRemover);
+
+        const btnRemover = document.createElement("button");
+        btnRemover.textContent = "Remover";
+        btnRemover.className = "remove-btn";
+        btnRemover.onclick = () => removerVenda(docId);
+
+        li.appendChild(btnEditar);
+        li.appendChild(btnRemover);
+
+        listaVendas.appendChild(li);
+      });
+
+      totalVendasDiv.textContent = `Total vendido: R$ ${total.toFixed(2)}`;
+    }
+
+    // --- Funções para editar produtos ---
+    function editarProduto(docId, produto, infoDiv, btnEditar, btnRemover) {
+      // Trocar info para inputs
+      infoDiv.innerHTML = `
+        <input type="text" class="edit-input" id="editNome_${docId}" value="${produto.nome}" />
+        <input type="number" class="edit-input" id="editQtd_${docId}" value="${produto.quantidade}" min="0" />
+        <input type="number" class="edit-input" id="editPreco_${docId}" value="${produto.preco.toFixed(2)}" step="0.01" min="0" />
+      `;
+
+      // Esconder botões editar e remover
+      btnEditar.style.display = "none";
+      btnRemover.style.display = "none";
+
+      // Criar botões salvar e cancelar
+      const btnSalvar = document.createElement("button");
+      btnSalvar.textContent = "Salvar";
+      btnSalvar.className = "save-btn";
+      btnSalvar.onclick = async () => {
+        const novoNome = document.getElementById(`editNome_${docId}`).value.trim();
+        const novaQtd = parseInt(document.getElementById(`editQtd_${docId}`).value);
+        const novoPreco = parseFloat(document.getElementById(`editPreco_${docId}`).value);
+
+        if (!novoNome || isNaN(novaQtd) || novaQtd < 0 || isNaN(novoPreco) || novoPreco < 0) {
+          alert("Preencha os campos corretamente.");
+          return;
+        }
+
+        await estoqueRef.doc(docId).update({
+          nome: novoNome,
+          quantidade: novaQtd,
+          preco: novoPreco
+        });
+
+        // Restaurar botões
+        btnEditar.style.display = "inline-block";
+        btnRemover.style.display = "inline-block";
+      };
+
+      const btnCancelar = document.createElement("button");
+      btnCancelar.textContent = "Cancelar";
+      btnCancelar.className = "cancel-btn";
+      btnCancelar.onclick = () => {
+        // Restaurar texto original
+        infoDiv.textContent = `${produto.nome} — Qtd: ${produto.quantidade} — R$ ${produto.preco.toFixed(2)}`;
+        btnEditar.style.display = "inline-block";
+        btnRemover.style.display = "inline-block";
+
+        btnSalvar.remove();
+        btnCancelar.remove();
+      };
+
+      infoDiv.appendChild(btnSalvar);
+      infoDiv.appendChild(btnCancelar);
+    }
+
+    // --- Funções para remover produto ---
+    async function removerProduto(docId) {
+      if (confirm("Deseja realmente remover este produto do estoque?")) {
+        await estoqueRef.doc(docId).delete();
+      }
+    }
+
+    // --- Funções para editar venda ---
+    async function editarVenda(docId, venda, infoDiv, btnEditar, btnRemover) {
+      // Buscando o produto para pegar preço atualizado
+      const produtosSnapshot = await estoqueRef.where("nome", "==", venda.nome).get();
+      if (produtosSnapshot.empty) {
+        alert("Produto da venda não encontrado no estoque (não pode editar).");
+        return;
+      }
+      const produtoDoc = produtosSnapshot.docs[0];
+      const precoAtual = produtoDoc.data().preco;
+
+      infoDiv.innerHTML = `
+        <input type="number" class="edit-input" id="editQtdVenda_${docId}" value="${venda.quantidade}" min="1" />
+        <span> Produto: ${venda.nome} (Preço atual: R$ ${precoAtual.toFixed(2)})</span>
+      `;
+
+      btnEditar.style.display = "none";
+      btnRemover.style.display = "none";
+
+      const btnSalvar = document.createElement("button");
+      btnSalvar.textContent = "Salvar";
+      btnSalvar.className = "save-btn";
+      btnSalvar.onclick = async () => {
+        const novaQtd = parseInt(document.getElementById(`editQtdVenda_${docId}`).value);
+        if (isNaN(novaQtd) || novaQtd <= 0) {
+          alert("Quantidade inválida.");
+          return;
+        }
+
+        // Atualiza venda com nova quantidade e valor total (considerando preço atual do produto)
+        await vendasRef.doc(docId).update({
+          quantidade: novaQtd,
+          valorTotal: novaQtd * precoAtual
+        });
+
+        btnEditar.style.display = "inline-block";
+        btnRemover.style.display = "inline-block";
+      };
+
+      const btnCancelar = document.createElement("button");
+      btnCancelar.textContent = "Cancelar";
+      btnCancelar.className = "cancel-btn";
+      btnCancelar.onclick = () => {
+        infoDiv.textContent = `${venda.quantidade}x ${venda.nome} — Total: R$ ${venda.valorTotal.toFixed(2)}`;
+        btnEditar.style.display = "inline-block";
+        btnRemover.style.display = "inline-block";
+
+        btnSalvar.remove();
+        btnCancelar.remove();
+      };
+
+      infoDiv.appendChild(btnSalvar);
+      infoDiv.appendChild(btnCancelar);
+    }
+
+    // --- Função para remover venda ---
+    async function removerVenda(docId) {
+      if (confirm("Deseja realmente remover esta venda?")) {
+        await vendasRef.doc(docId).delete();
+      }
+    }
+
+    // --- Eventos padrões ---
+    btnAdicionar.addEventListener("click", async () => {
+      alerta.textContent = "";
+      const nome = nomeProduto.value.trim();
+      const quantidade = parseInt(quantidadeProduto.value);
+      const preco = parseFloat(precoProduto.value);
+
+      if (!nome || isNaN(quantidade) || quantidade <= 0 || isNaN(preco) || preco <= 0) {
+        alerta.textContent = "Preencha os campos corretamente.";
+        return;
+      }
+
+      const snapshot = await estoqueRef.where("nome", "==", nome).get();
+      if (!snapshot.empty) {
+        const doc = snapshot.docs[0];
+        const atual = doc.data();
+        await estoqueRef.doc(doc.id).update({
+          quantidade: atual.quantidade + quantidade,
+          preco: preco
+        });
+      } else {
+        await estoqueRef.add({ nome, quantidade, preco });
+      }
+
+      nomeProduto.value = "";
+      quantidadeProduto.value = "";
+      precoProduto.value = "";
     });
-  }
 
-  function atualizarVendas() {
-    listaVendas.innerHTML = '';
-    if (vendas.length === 0) {
-      const li = document.createElement('li');
-      li.textContent = 'Nenhuma venda registrada.';
-      li.style.textAlign = 'center';
-      li.style.color = '#999';
-      li.style.fontWeight = '400';
-      listaVendas.appendChild(li);
-      totalVendasDiv.textContent = 'Total vendido: R$ 0,00';
-      return;
-    }
+    btnRegistrarVenda.addEventListener("click", async () => {
+      alerta.textContent = "";
+      const produtoId = selectProduto.value;
+      const qtd = parseInt(quantidadeVenda.value);
 
-    let total = 0;
-    vendas.forEach(venda => {
-      total += venda.valorTotal;
-      const li = document.createElement('li');
-      li.textContent = `${venda.quantidade}x ${venda.nome} — Total: R$ ${venda.valorTotal.toFixed(2)}`;
-      listaVendas.appendChild(li);
+      if (!produtoId || isNaN(qtd) || qtd <= 0) {
+        alerta.textContent = "Selecione produto e informe quantidade válida.";
+        return;
+      }
+
+      const doc = await estoqueRef.doc(produtoId).get();
+      const produto = doc.data();
+
+      if (produto.quantidade < qtd) {
+        alerta.textContent = "Estoque insuficiente.";
+        return;
+      }
+
+      await estoqueRef.doc(produtoId).update({
+        quantidade: produto.quantidade - qtd
+      });
+
+      await vendasRef.add({
+        nome: produto.nome,
+        quantidade: qtd,
+        valorTotal: qtd * produto.preco
+      });
+
+      quantidadeVenda.value = "";
     });
 
-    totalVendasDiv.textContent = `Total vendido: R$ ${total.toFixed(2)}`;
-  }
-
-  document.getElementById('btnAdicionar').addEventListener('click', () => {
-    const nome = document.getElementById('nomeProduto').value.trim();
-    const quantidade = parseInt(document.getElementById('quantidadeProduto').value);
-    const preco = parseFloat(document.getElementById('precoProduto').value);
-
-    alerta.textContent = '';
-
-    if (!nome) {
-      alerta.textContent = 'Informe o nome do produto.';
-      return;
-    }
-    if (isNaN(quantidade) || quantidade <= 0) {
-      alerta.textContent = 'Informe uma quantidade válida.';
-      return;
-    }
-    if (isNaN(preco) || preco <= 0) {
-      alerta.textContent = 'Informe um preço válido.';
-      return;
-    }
-
-    const produtoExistente = estoque.find(p => p.nome.toLowerCase() === nome.toLowerCase());
-    if (produtoExistente) {
-      produtoExistente.quantidade += quantidade;
-      produtoExistente.preco = preco;
-    } else {
-      estoque.push({ nome, quantidade, preco });
-    }
-
-    document.getElementById('nomeProduto').value = '';
-    document.getElementById('quantidadeProduto').value = '';
-    document.getElementById('precoProduto').value = '';
-
-    atualizarEstoque();
-  });
-
-  document.getElementById('btnRegistrarVenda').addEventListener('click', () => {
-    alerta.textContent = '';
-    const index = parseInt(selectProduto.value);
-    const quantidadeVenda = parseInt(document.getElementById('quantidadeVenda').value);
-
-    if (estoque.length === 0) {
-      alerta.textContent = 'Nenhum produto disponível para venda.';
-      return;
-    }
-    if (isNaN(index) || !estoque[index]) {
-      alerta.textContent = 'Selecione um produto válido.';
-      return;
-    }
-    if (isNaN(quantidadeVenda) || quantidadeVenda <= 0) {
-      alerta.textContent = 'Informe uma quantidade válida.';
-      return;
-    }
-    if (quantidadeVenda > estoque[index].quantidade) {
-      alerta.textContent = 'Quantidade insuficiente em estoque.';
-      return;
-    }
-
-    estoque[index].quantidade -= quantidadeVenda;
-
-    vendas.push({
-      nome: estoque[index].nome,
-      quantidade: quantidadeVenda,
-      valorTotal: quantidadeVenda * estoque[index].preco
+    // Atualizações em tempo real
+    estoqueRef.onSnapshot(snapshot => {
+      atualizarEstoqueUI(snapshot.docs);
     });
 
-    atualizarEstoque();
-    atualizarVendas();
-
-    document.getElementById('quantidadeVenda').value = '';
-  });
-
-  atualizarEstoque();
-  atualizarVendas();
-</script>
+    vendasRef.onSnapshot(snapshot => {
+      atualizarVendasUI(snapshot.docs);
+    });
+  </script>
 
 </body>
 </html>
